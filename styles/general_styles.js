@@ -6,6 +6,10 @@ export default  styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
   },
+  scrollViewContent: {
+    flexGrow: 1, // Ensure content fills the available space
+    padding: 20, // Add padding for better visual appearance
+  },
   formGroup: {
     marginBottom: 16,
   },

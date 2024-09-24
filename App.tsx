@@ -135,7 +135,7 @@ export default function DateTimePickerWithSupabase() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={styles.scrollViewContent}>
     <View style={styles.container}>
           <Auth
           value={email}
