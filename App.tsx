@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, SafeAreaView, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
+import { View, SafeAreaView, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform, Image } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,8 +18,8 @@ export default function DateTimePickerWithSupabase() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [imageUri, setImageUri] = useState(null);
-  
+  const [imageUris, setImageUris] = useState([]); // Changed to an array to store multiple image URIs
+
   // Auth states
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
@@ -52,16 +52,18 @@ export default function DateTimePickerWithSupabase() {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
+      allowsMultipleSelection: true, // Ensure multiple selection is enabled
+      selectionLimit: 10 // Set the maximum number of images the user can select
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImageUri(result.assets[0].uri);
+      setImageUris(result.assets.map(asset => asset.uri)); // Update the imageUris array with the selected image URIs
     }
   };
 
   const handleSubmit = async () => {
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to submit data.');
+      Alert.alert('Error', 'You  must be logged in to submit data.');
       return;
     }
 
@@ -80,23 +82,28 @@ export default function DateTimePickerWithSupabase() {
         elogios: JSON.stringify({ text: compliment }),
       };
 
-      if (imageUri) {
-        let response = await fetch(imageUri);
-        let blob = await response.blob();
+      if (imageUris.length > 0) {
+        const imageUrls = [];
+        for (const imageUri of imageUris) {
+          let response = await fetch(imageUri);
+          let blob = await response.blob();
 
-        const { error: storageError, data: storageData } = await supabase.storage
-          .from('images')
-          .upload(
-            `compliment-${Date.now()}.jpg`,
-            blob,
-            {
-              contentType: 'image/jpeg',
-            }
-          );
+          const { error: storageError, data: storageData } = await supabase.storage
+            .from('images')
+            .upload(
+              `compliment-${Date.now()}.jpg`,
+              blob,
+              {
+                contentType: 'image/jpeg',
+              }
+            );
 
-        if (storageError) throw storageError;
+          if (storageError) throw storageError;
 
-        data.image_url = storageData.path;
+          imageUrls.push(storageData.path);
+        }
+
+        data.image_urls = imageUrls; // Store the image URLs in an array
       }
 
       const { error } = await supabase.from('users').insert(data);
@@ -107,7 +114,7 @@ export default function DateTimePickerWithSupabase() {
       setDate(new Date());
       setTime(new Date());
       setCompliment('');
-      setImageUri(null);
+      setImageUris([]); // Clear the imageUris array after submission
     } catch (error) {
       console.error('Error submitting data:', error);
       Alert.alert('Error', 'Error submitting data. Please try again.');
@@ -136,74 +143,84 @@ export default function DateTimePickerWithSupabase() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
-    <View style={styles.container}>
-          <Auth
+      <View style={styles.container}>
+        <Auth
           value={email}
           onChangeText={setEmail}
-          
-          /> 
-          {user && (
-            <>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Date</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-                  <Text>{format(date, 'PPP')}</Text>
-                </TouchableOpacity>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                  />
-                )}
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Time</Text>
-                <TouchableOpacity onPress={() => setShowTimePicker(true)} style={styles.input}>
-                  <Text>{format(time, 'p')}</Text>
-                </TouchableOpacity>
-                {showTimePicker && (
-                  <DateTimePicker
-                    value={time}
-                    mode="time"
-                    display="default"
-                    onChange={handleTimeChange}
-                  />
-                )}
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Compliment</Text>
-                <TextInput
-                  style={styles.input}
-                  value={compliment}
-                  onChangeText={setCompliment}
-                  placeholder="Enter your compliment here"
-                  multiline
-                />
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Image</Text>
-                <TouchableOpacity onPress={pickImage} style={styles.input}>
-                  <Text>{imageUri ? 'Image Selected' : 'Select Image'}</Text>
-                </TouchableOpacity>
-                {imageUri && <Text style={styles.imageSelected}>Image selected: {imageUri}</Text>}
-              </View>
-
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={loading}
-                style={[styles.button, styles.submitButton, loading && styles.disabledButton]}
-              >
-                <Text style={styles.buttonText}>{loading ? 'Submitting...' : 'Submit'}</Text>
+        /> 
+        {user && (
+          <>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
+                <Text>{format(date, 'PPP')}</Text>
               </TouchableOpacity>
-            </>
-          )}
-    </View>
-    </ScrollView>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
+              )}
+            </View>
 
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Time</Text>
+              <TouchableOpacity onPress={() => setShowTimePicker(true)} style={styles.input}>
+                <Text>{format(time, 'p')}</Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  display="default"
+                  onChange={handleTimeChange}
+                />
+              )}
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Compliment</Text>
+              <TextInput
+                style={styles.input}
+                value={compliment}
+                onChangeText={setCompliment}
+                placeholder="Enter your compliment here"
+                multiline
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Images</Text>
+              <TouchableOpacity onPress={pickImage} style={styles.input}>
+                <Text>{imageUris.length > 0 ? 'Images Selected' : 'Select Images'}</Text>
+              </TouchableOpacity>
+              {imageUris.length > 0 && (
+                <View>
+                  <Text style={styles.imageSelected}>Images selected: {imageUris.length} </Text>
+                  {/* Preview selected images */}
+                  {imageUris.map((uri, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri }}
+                      style={{ width: 100, height: 100, margin: 5 }}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={loading}
+              style={[styles.button, styles.submitButton, loading && styles.disabledButton]}
+            >
+              <Text style={styles.buttonText}>{loading ? 'Submitting...' : 'Submit'}</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </ScrollView>
   );
 }
