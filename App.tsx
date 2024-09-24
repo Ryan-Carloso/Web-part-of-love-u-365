@@ -4,6 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { format } from 'date-fns';
+import styles from './styles/general_styles'
+
+import Auth from './auth'
 
 // Initialize Supabase client
 const supabase = createClient('https://laqxbdncmapnhorlbbkg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhcXhiZG5jbWFwbmhvcmxiYmtnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNjg2MTcyNSwiZXhwIjoyMDQyNDM3NzI1fQ.Xr3j4FThRX5C0Zk5txIqobebk6v5FBf2K5Mahe8vdzY');
@@ -132,23 +135,13 @@ export default function DateTimePickerWithSupabase() {
   };
 
   return (
+    <ScrollView>
     <View style={styles.container}>
-      <SafeAreaView>
-        <ScrollView>
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-            />
-          </View>
-
-          <TouchableOpacity onPress={sendMagicLink} style={styles.button}>
-            <Text style={styles.buttonText}>Send Magic Link</Text>
-          </TouchableOpacity>
-
+          <Auth
+          value={email}
+          onChangeText={setEmail}
+          
+          /> 
           {user && (
             <>
               <View style={styles.formGroup}>
@@ -209,53 +202,8 @@ export default function DateTimePickerWithSupabase() {
               </TouchableOpacity>
             </>
           )}
-        </ScrollView>
-      </SafeAreaView>
     </View>
+    </ScrollView>
+
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#374151',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#3B82F6',
-    padding: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  submitButton: {
-    marginTop: 16,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  imageSelected: {
-    marginTop: 8,
-    color: '#059669',
-  },
-});

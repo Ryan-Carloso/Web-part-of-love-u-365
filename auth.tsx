@@ -1,15 +1,14 @@
-import React, { Component, useEffect, useState } from 'react'
-import { View, SafeAreaView, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, SafeAreaView, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
-import styles from './styles/general_styles'
+import styles from './styles/general_styles';
 
 const supabase = createClient('https://laqxbdncmapnhorlbbkg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhcXhiZG5jbWFwbmhvcmxiYmtnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNjg2MTcyNSwiZXhwIjoyMDQyNDM3NzI1fQ.Xr3j4FThRX5C0Zk5txIqobebk6v5FBf2K5Mahe8vdzY');
-const [user, setUser] = useState(null);
 
-const [email, setEmail] = useState('');
+const Auth = ({ user }) => { 
+  const [email, setEmail] = useState('');
 
-
-const sendMagicLink = async () => {
+  const sendMagicLink = async () => {
     console.log('Sending magic link to:', email);
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -27,12 +26,13 @@ const sendMagicLink = async () => {
     }
   };
 
-class Auth extends Component {
-  render() {
-    const { user } = this.props; // Receive the user prop
-
-    return (
-      <SafeAreaView>
+  return (
+    <SafeAreaView>
+      {user ? (
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Welcome, {user.email}</Text> 
+        </View>
+      ) : (
         <View style={styles.formGroup}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -42,13 +42,15 @@ class Auth extends Component {
             placeholder="Enter your email"
           />
         </View>
+      )}
 
+      {user ? null : (
         <TouchableOpacity onPress={sendMagicLink} style={styles.button}>
           <Text style={styles.buttonText}>Send Magic Link</Text>
         </TouchableOpacity>
-      </SafeAreaView>
-    )
-  }
-}
+      )}
+    </SafeAreaView>
+  );
+};
 
-export default Auth
+export default Auth;
