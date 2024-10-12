@@ -9,7 +9,7 @@ import styles from './styles/general_styles'
 import Auth from './auth'
 
 // Initialize Supabase client
-const supabase = createClient('https://laqxbdncmapnhorlbbkg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhcXhiZG5jbWFwbmhvcmxiYmtnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNjg2MTcyNSwiZXhwIjoyMDQyNDM3NzI1fQ.Xr3j4FThRX5C0Zk5txIqobebk6v5FBf2K5Mahe8vdzY');
+const supabase = createClient('https://api.supabase.co', 'key');
 
 export default function DateTimePickerWithSupabase() {
   const [date, setDate] = useState(new Date());
